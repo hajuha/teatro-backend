@@ -10,7 +10,7 @@ router = APIRouter()
 user_repository = UserRepository()
 
 
-@router.post("auth/signup")
+@router.post("/auth/signup")
 async def user_signup(user: UserSignup = Body(...)):
     user_exist = await user_repository.find_user(user.username)
 
@@ -22,7 +22,7 @@ async def user_signup(user: UserSignup = Body(...)):
     return new_user
 
 
-@router.post("auth/login")
+@router.post("/auth/login")
 async def user_login(login_form: OAuth2PasswordRequestForm = Depends()):
 
     print(login_form)
