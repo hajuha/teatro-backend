@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Body, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from src.core.auth.main import authenticate_user, create_jwt_token
-
+import json
 from src.databases.user.model import UserModel, UserSignup
 from src.databases.user.repository import UserRepository
 
@@ -39,3 +39,23 @@ async def user_login(login_form: OAuth2PasswordRequestForm = Depends()):
     access_token = await create_jwt_token(data={"sub": user})
 
     return {"access_token": access_token, "token_type": "bearer"}
+
+
+@router.post("/user/search")
+async def search_user():
+
+    user_exist = await user_repository.find_many()
+    
+    users = list(
+        map(
+            lambda user: {
+                "id": str(user['_id']),
+                "username": user['username'],
+                "email": user['email'],
+                "fullname": user['fullname'],
+            },
+            user_exist,
+        )
+    )
+
+    return {"user_exist": users}

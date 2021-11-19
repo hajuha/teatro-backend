@@ -12,7 +12,7 @@ class UserRepository:
     def __init__(self):
         self.__user_collection = db_client['teatro']['user']
 
-    async def find_user(self, username):
+    async def find_user(self, username: None):
 
         user_exists = await self.__user_collection.find_one(
             {"username": username}
@@ -34,3 +34,13 @@ class UserRepository:
         new_user = await self.__user_collection.find_one({"username": user.username})
 
         return user_to_dict(new_user)
+
+    async def find_many(self):
+
+        user_exists = self.__user_collection.find()
+        if not user_exists:
+            return None
+
+        user_to_list = await user_exists.to_list(None)   
+        
+        return user_to_list
