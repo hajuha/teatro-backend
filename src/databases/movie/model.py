@@ -24,23 +24,24 @@ class PyObjectId(ObjectId):
 
 
 @dataclass
-class Ratings:
-    customer_id: str
-    stars: str
+class Review:
+    CustomerId: str
+    Stars: str
+    Comment: str
 
 
 class MovieModel(BaseModel):
-    id: PyObjectId = Field(...)
-    temp_id: str = Field(...)
-    name: str = Field(...)
-    release_date: str = Field(...)
-    video_release_date: str = Field(...)
-    imdb_link: str = Field(...)
-    poster_link: str = Field(...)
-    tags: List[str] = Field(...)
-    ratings: List[Ratings] = Field(...)
-    running_time: Optional[int] = Field(...)
-    desc: Optional[str] = Field(...)
+    id: str = Field(...)
+    TempId: str = Field(...)
+    Name: str = Field(...)
+    ReleaseDate: str = Field(...)
+    VideoReleaseDate: str = Field(...)
+    IMDB: str = Field(...)
+    Tags: List[str] = Field(...)
+    Reviews: List[Review] = Field(...)
+    ratings: Optional[int]
+    RunningTimeInMinutes: Optional[int] = Field(...)
+    Description: Optional[str] = Field(...)
 
     class Config:
         arbitrary_types_allowed = True
@@ -53,27 +54,25 @@ class Movies:
 @dataclass
 class SingleMovie:
     id: str
-    temp_id: str
-    name: str
-    release_date: str
-    video_release_date: str
-    imdb_link: str
-    poster_link: str
-    tags: List[str]
+    TempId: str
+    Name: str
+    ReleaseDate: str
+    VideoReleaseDate: str
+    IMDB: str
+    Tags: List[str]
     ratings: str
-    running_time: Optional[int]
-    desc: Optional[str]
+    RunningTimeInMinutes: Optional[int]
+    Description: Optional[str]
 @dataclass
 class RequestUpdateMovie:
-    temp_id: str
-    name: str
-    release_date: str
-    video_release_date: str
-    imdb_link: str
-    poster_link: str
-    tags: List[str]
-    running_time: Optional[int]
-    desc: Optional[str]
+    TempId: str
+    Name: str
+    ReleaseDate: str
+    VideoReleaseDate: str
+    IMDB: str
+    Tags: List[str]
+    RunningTimeInMinutes: Optional[int]
+    Description: Optional[str]
 
 class ResponseSingleMovie(BaseResponse):
     data: SingleMovie

@@ -12,7 +12,7 @@ def get_rating(ratings) -> float:
     if len(ratings) == 0:
         return 0
     for rating in ratings:
-        sum += int(rating.stars)
+        sum += int(rating.Stars)
 
     average_rating = float(sum) / len(ratings)
 

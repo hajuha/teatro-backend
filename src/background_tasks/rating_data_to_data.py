@@ -4,7 +4,7 @@ from sklearn.neighbors import NearestNeighbors
 
 
 async def main():
-    movie_collection = await get_collection("movie")
+    movie_collection = await get_collection("Movies")
     similar_collection = await get_collection("similar_collection")
     similar_collection.drop()
 
@@ -13,31 +13,32 @@ async def main():
 
     movie_to_list = await movie_exist.to_list(None)
 
-    temp_list = list(movie for movie in movie_to_list if not len(movie["ratings"]) < 1)
+    temp_list = list(movie for movie in movie_to_list if not len(movie["Reviews"]) < 1)
 
     temp_list = list(
         map(
             lambda movie: {
-                "movie_id": movie["_id"],
-                "name": movie["name"],
-                "ratings": movie["ratings"],
+                "MovieId": movie["_id"],
+                "Name": movie["Name"],
+                "Reviews": movie["Reviews"],
             },
             temp_list,
         )
     )
-
+    print(len(temp_list))
     raw_df = pd.DataFrame(temp_list)
-    df = raw_df.drop(columns=["name"])
-    df = df.explode("ratings")
+    df = raw_df.drop(columns=["Name"])
+    df = df.explode("Reviews")
 
-    df[["customer_id", "star"]] = df.ratings.apply(pd.Series)
+    df[["CustomerId", "Stars","Comment"]] = df.Reviews.apply(pd.Series)
     df = (
-        df.drop(columns=["ratings"])
-        .set_index(["movie_id", "customer_id"])
-        .unstack(["customer_id"])
+        df.drop(columns=["Reviews"])
+        .set_index(["MovieId", "CustomerId"])
+        .unstack(["CustomerId"])
         .fillna(0)
     )
 
+    df = df.drop(columns=["Comment"])
     knn = NearestNeighbors(metric="cosine", algorithm="brute")
 
     knn.fit(df.values)
@@ -82,7 +83,7 @@ async def main():
             print(e)
 
 
-def movie_name_from_id(df, movie_id):
-    names = df[df.movie_id == movie_id].name
+def movie_name_from_id(df, MovieId):
+    names = df[df.MovieId == MovieId].Name
 
     return names.iloc[0]

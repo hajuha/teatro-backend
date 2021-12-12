@@ -14,7 +14,7 @@ async def get_similar_movies(id: str):
 
     similar_collection = await get_collection("similar_collection")
 
-    movie_exist = await similar_collection.find_one({"_id": ObjectId(id)})
+    movie_exist = await similar_collection.find_one({"_id": id})
 
     result = list(
         map(

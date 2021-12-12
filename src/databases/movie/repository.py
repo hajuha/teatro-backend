@@ -16,7 +16,7 @@ class MovieRepository:
         sort: Any,
     ):
         max_per_page = settings.PAGINATION.MAX_PER_PAGE
-        movie_collection = await get_collection("movie")
+        movie_collection = await get_collection("Movies")
 
         founds = movie_collection.find(params)
         total_entries = await movie_collection.count_documents({})
@@ -53,7 +53,7 @@ class MovieRepository:
         )
 
     async def find_one(self, id):
-        movie_collection = await get_collection("movie")
+        movie_collection = await get_collection("Movies")
 
         movie_exist = await movie_collection.find_one({"_id": ObjectId(id)})
 
@@ -63,7 +63,7 @@ class MovieRepository:
         return MovieModel(**movie_exist, id=movie_exist["_id"])
 
     async def update_one(self, id, changes):
-        movie_collection = await get_collection("movie")
+        movie_collection = await get_collection("Movies")
 
         changes = changes.__dict__
 
@@ -74,14 +74,14 @@ class MovieRepository:
         return MovieModel(**movie_exist)
 
     async def delete_one(self, id):
-        movie_collection = await get_collection("movie")
+        movie_collection = await get_collection("Movies")
 
         result = await movie_collection.delete_one({"_id": ObjectId(id)})
     
         return result
     
     async def create(self, movie):
-        movie_collection = await get_collection("movie")
+        movie_collection = await get_collection("Movies")
         
         movie_in_db = movie.__dict__
         movie_in_db['ratings'] = []

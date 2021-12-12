@@ -44,7 +44,7 @@ async def search_movie(request: SearchMovieRequest):
     movie_exists = await movie_repository.find_many(query, pagination, sort)
 
     for movie in movie_exists.data:
-        movie.ratings = get_rating(movie.ratings)
+        movie.ratings = get_rating(movie.Reviews)
         movie.id = str(movie.id)
 
     return BaseResponse(
@@ -61,7 +61,7 @@ async def get_movie(id: str) -> ResponseSingleMovie:
         code=StatusCodeEnum.failed, message=MESSAGES["movie_not_found"]
     )
         
-    movie_exist.ratings = get_rating(movie_exist.ratings)
+    movie_exist.ratings = get_rating(movie_exist.Reviews)
     movie_exist.id = str(movie_exist.id)
 
     return BaseResponse(
@@ -78,7 +78,7 @@ async def update_movie(
     # changes.id = id
     movie_exist = await movie_repository.update_one(id, changes)
 
-    movie_exist.ratings = get_rating(movie_exist.ratings)
+    movie_exist.ratings = get_rating(movie_exist.Reviews)
     movie_exist.id = str(movie_exist.id)
 
     return BaseResponse(
@@ -92,7 +92,7 @@ async def create_movie(
 ) -> ResponseSingleMovie:
     movie_exist = await movie_repository.create(movie)
 
-    movie_exist.ratings = get_rating(movie_exist.ratings)
+    movie_exist.ratings = get_rating(movie_exist.Reviews)
     movie_exist.id = str(movie_exist.id)
 
     return BaseResponse(
