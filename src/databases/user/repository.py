@@ -1,21 +1,18 @@
+from bson.objectid import ObjectId
 from fastapi.encoders import jsonable_encoder
-from src.core.database.mongo import get_db_client
-from src.core.auth.password import get_password_hash
-from src.databases.user.helper import user_to_dict
-from src.databases.user.model import UserInDB, UserModel
-
-
-db_client = get_db_client()
+from core.database.mongo import get_collection, get_db_client
+from core.auth.password import get_password_hash
+from databases.user.helper import user_to_dict
+from databases.user.model import UserInDB, UserModel
 
 
 class UserRepository:
-    def __init__(self):
-        self.__user_collection = db_client['teatro']['user']
 
-    async def find_user(self, username: None):
+    async def find_user(self, email: None):
+        user_collection = await get_collection('user')
 
-        user_exists = await self.__user_collection.find_one(
-            {"username": username}
+        user_exists = await user_collection.find_one(
+            {"email": email}
         )
 
         if not user_exists:
@@ -24,20 +21,22 @@ class UserRepository:
         return user_exists
 
     async def add_user(self, user):
+        user_collection = await get_collection('user')
 
         hashed_password= get_password_hash(user.password)
-
+        
         user_in_db = UserInDB(**user.dict(), hashed_password=hashed_password)
 
-        await self.__user_collection.insert_one(jsonable_encoder(user_in_db))
+        await user_collection.insert_one(jsonable_encoder(user_in_db))
 
-        new_user = await self.__user_collection.find_one({"username": user.username})
+        new_user = await user_collection.find_one({"email": user.email})
 
         return user_to_dict(new_user)
 
     async def find_many(self):
+        user_collection = await get_collection('user')
 
-        user_exists = self.__user_collection.find()
+        user_exists = user_collection.find()
         if not user_exists:
             return None
 

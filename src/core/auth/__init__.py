@@ -1,1 +1,1 @@
-from src.core.auth.password import *
+from core.auth.password import *

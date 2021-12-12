@@ -1,20 +1,93 @@
-from src.core.database.mongo import get_db_client
+from typing import Any
+from bson import ObjectId
+from fastapi.encoders import jsonable_encoder
+from core.base_model import DataWithPagination, Pagination
+from core.config import settings
+from core.database.mongo import get_collection
+from databases.movie.model import MovieModel
+import uuid
 
-db_client = get_db_client()
 
 class MovieRepository:
-    def __init__(self):
-        self.__movie_collection = db_client['teatro']['movie']
+    async def find_many(
+        self,
+        params,
+        pagination: Pagination,
+        sort: Any,
+    ):
+        max_per_page = settings.PAGINATION.MAX_PER_PAGE
+        movie_collection = await get_collection("movie")
 
-    
-    async def find_many(self):
+        founds = movie_collection.find(params)
+        total_entries = await movie_collection.count_documents({})
+        if pagination["page"]:
+            founds = founds.skip((pagination["page"] - 1) * pagination["per_page"])
 
-        movie_exists = self.__movie_collection.find()
+        if pagination["per_page"]:
+            founds = founds.limit(min(max_per_page, pagination["per_page"]))
+            print(min(max_per_page, pagination["per_page"]))
 
-        movie_exists = movie_exists.limit(10)
-        if not movie_exists:
+        if sort:
+            founds = founds.sort(sort["key"], int(sort["direction"]))
+
+        if not founds:
+            return None
+        
+        print(min(max_per_page, pagination["per_page"]))
+        founds.limit(10)
+
+        movie_to_list = await founds.to_list(None)
+
+        movies = list(
+            map(
+                lambda movie: MovieModel(**movie, id=movie["_id"]),
+                movie_to_list,
+            )
+        )
+
+        return DataWithPagination(
+            total_entries=total_entries,
+            per_page=pagination["per_page"],
+            page=pagination["page"],
+            data=movies,
+        )
+
+    async def find_one(self, id):
+        movie_collection = await get_collection("movie")
+
+        movie_exist = await movie_collection.find_one({"_id": ObjectId(id)})
+
+        if not movie_exist:
             return None
 
-        movie_to_list = await movie_exists.to_list(None)   
+        return MovieModel(**movie_exist, id=movie_exist["_id"])
+
+    async def update_one(self, id, changes):
+        movie_collection = await get_collection("movie")
+
+        changes = changes.__dict__
+
+        await movie_collection.update_one({"_id": ObjectId(id)}, {"$set": changes})
+
+        movie_exist = await movie_collection.find_one({"_id": ObjectId(id)})
+
+        return MovieModel(**movie_exist)
+
+    async def delete_one(self, id):
+        movie_collection = await get_collection("movie")
+
+        result = await movie_collection.delete_one({"_id": ObjectId(id)})
+    
+        return result
+    
+    async def create(self, movie):
+        movie_collection = await get_collection("movie")
         
-        return movie_to_list
+        movie_in_db = movie.__dict__
+        movie_in_db['ratings'] = []
+        
+        result = await movie_collection.insert_one(jsonable_encoder(movie_in_db))
+        
+        new_movie = await movie_collection.find_one({"_id": result.inserted_id})
+
+        return MovieModel(**new_movie, id=new_movie['_id'])

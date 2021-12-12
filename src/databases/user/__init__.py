@@ -1,2 +1,2 @@
-from src.databases.user.model import UserModel
-from src.databases.user.repository import * 
+from databases.user.model import UserModel
+from databases.user.repository import * 

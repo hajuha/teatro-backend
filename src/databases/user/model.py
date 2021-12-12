@@ -1,7 +1,9 @@
 from typing import Optional
+from dataclasses import dataclass
 from pydantic.main import BaseModel
 from pydantic import Field
 from bson import ObjectId
+from pydantic.networks import EmailStr
 class PyObjectId(ObjectId):
 
     @classmethod
@@ -20,11 +22,9 @@ class PyObjectId(ObjectId):
 
 
 class UserModel(BaseModel):
-    id: Optional[PyObjectId] = Field(alias='_id')
-    username: str = Field(...)
-    email: Optional[str] = Field(...)
+    email: str = Field(...)
     fullname: Optional[str] = Field(...)
-    hashed_password: str = Field(...)
+    phone_number: Optional[str] = Field(...)
 
     class Config:
         arbitrary_types_allowed = True
@@ -33,17 +33,17 @@ class UserModel(BaseModel):
         }     
 
 class UserSignup(BaseModel):
-    username: str
-    email: Optional[str] = None
+    email: EmailStr = Field(...)
     fullname: Optional[str] = None
+    phone_number: Optional[str] = None
     password: str
 
     class Config:
         schema_extra = {
             "example": {
-                "username": "user_0",
+                "email": "user_0@example.com",
                 "fullname": "Slim Pro",
-                "email": "abdulazeez@x.com",
+                "phone_number": "09875634623",
                 "password": "12345678"
             }
         }
