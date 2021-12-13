@@ -25,15 +25,13 @@ class MovieRepository:
 
         if pagination["per_page"]:
             founds = founds.limit(min(max_per_page, pagination["per_page"]))
-            print(min(max_per_page, pagination["per_page"]))
 
         if sort:
             founds = founds.sort(sort["key"], int(sort["direction"]))
 
         if not founds:
             return None
-        
-        print(min(max_per_page, pagination["per_page"]))
+
         founds.limit(10)
 
         movie_to_list = await founds.to_list(None)

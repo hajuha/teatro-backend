@@ -1,15 +1,16 @@
 from core.database.mongo import get_collection
 import pandas as pd
 from sklearn.neighbors import NearestNeighbors
-
+import time
 
 async def main():
+    t1 = time.time()
+    print("Start job: calculate similarities")
     movie_collection = await get_collection("Movies")
     similar_collection = await get_collection("similar_collection")
-    similar_collection.drop()
+    # similar_collection.drop()
 
     movie_exist = movie_collection.find()
-    # movie_exist.limit(100)
 
     movie_to_list = await movie_exist.to_list(None)
 
@@ -25,12 +26,12 @@ async def main():
             temp_list,
         )
     )
-    print(len(temp_list))
+
     raw_df = pd.DataFrame(temp_list)
     df = raw_df.drop(columns=["Name"])
     df = df.explode("Reviews")
 
-    df[["CustomerId", "Stars","Comment"]] = df.Reviews.apply(pd.Series)
+    df[["CustomerId", "Stars", "Comment"]] = df.Reviews.apply(pd.Series)
     df = (
         df.drop(columns=["Reviews"])
         .set_index(["MovieId", "CustomerId"])
@@ -71,16 +72,20 @@ async def main():
                     sim_movies,
                 )
             )
-            
-            await similar_collection.insert_one(
+
+            await similar_collection.update_one(
+                {"_id": df.index[index_user_likes]},
                 {
-                    "_id": df.index[index_user_likes],
-                    "name": movie_name_from_id(raw_df, title),
-                    "similar": sim_movies_ids,
-                }
+                    "$set": dict(
+                        name=movie_name_from_id(raw_df, title),
+                        similar=sim_movies_ids,
+                    )
+                },
             )
         except Exception as e:
             print(e)
+    t2 = time.time()
+    print("Stop job: calculate similarities after {} seconds".format((t2-t1)))
 
 
 def movie_name_from_id(df, MovieId):

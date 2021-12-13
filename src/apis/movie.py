@@ -45,6 +45,7 @@ async def search_movie(request: SearchMovieRequest):
 
     for movie in movie_exists.data:
         movie.ratings = get_rating(movie.Reviews)
+        movie.Reviews = ''
         movie.id = str(movie.id)
 
     return BaseResponse(
