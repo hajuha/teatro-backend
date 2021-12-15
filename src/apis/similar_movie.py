@@ -10,9 +10,9 @@ router = APIRouter()
 
 
 @router.get("/similar_movies/{id}", tags=["movie"])
-async def get_similar_movies(id: str):
+async def get_similar_movies_from_movie(id: str):
 
-    similar_collection = await get_collection("similar_collection")
+    similar_collection = await get_collection("similar_movie_from_movie")
 
     movie_exist = await similar_collection.find_one({"_id": id})
 
@@ -27,4 +27,17 @@ async def get_similar_movies(id: str):
         code=StatusCodeEnum.success,
         message=MESSAGES["success"],
         data=dict(id=id, name=movie_exist["name"], similar_movies=result),
+    )
+    
+@router.get("/similar_movies/user/{id}", tags=["movie"])
+async def get_similar_movies_from_user(id: str):
+
+    similar_collection = await get_collection("similar_movie_from_user")
+
+    movie_exist = await similar_collection.find_one({"_id": id})
+
+    return BaseResponse(
+        code=StatusCodeEnum.success,
+        message=MESSAGES["success"],
+        data=dict(id=id, similar_movies=movie_exist["similar"]),
     )
