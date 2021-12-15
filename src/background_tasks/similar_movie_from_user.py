@@ -59,34 +59,27 @@ async def main():
         sorted_rm = sorted(recommended_movies, key=lambda x: x[1], reverse=True)
         rank = 1
 
-        client = await get_db_client()
-
-        async with await client.start_session() as s:
-            async with s.start_transaction():
-                database = client.teatro
-                similar_collection = database.get_collection("similar_movie_from_user")
-
-                try:
-                    await similar_collection.insert_one(
-                        dict(
-                            _id=user,
-                            similar=list(
-                                {
-                                    "name": movie_name_from_id(
-                                        raw_df, recommended_movie[0]
-                                    ),
-                                    "id": recommended_movie[0],
-                                }
-                                for recommended_movie in sorted_rm[
-                                    :num_recommended_movies
-                                ]
+        try:
+            await similar_collection.insert_one(
+                dict(
+                    _id=user,
+                    similar=list(
+                        {
+                            "name": movie_name_from_id(
+                                raw_df, recommended_movie[0]
                             ),
-                            # name=movie_name_from_id(raw_df, title),
-                        ),
-                        session=s,
-                    )
-                except Exception as e:
-                    print(e)
+                            "id": recommended_movie[0],
+                        }
+                        for recommended_movie in sorted_rm[
+                            :num_recommended_movies
+                        ]
+                    ),
+                    # name=movie_name_from_id(raw_df, title),
+                ),
+                session=s,
+            )
+        except Exception as e:
+            print(e)                
 
     knn = NearestNeighbors(metric="cosine", algorithm="brute")
 

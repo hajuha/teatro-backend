@@ -46,42 +46,36 @@ async def main():
     knn.fit(df.values)
 
     distances, indices = knn.kneighbors(df.values, n_neighbors=5)
-    client = await get_db_client()
-    async with await client.start_session() as s:
-        async with s.start_transaction():
-            database = client.teatro
-            similar_collection = database.get_collection("similar_movie_from_movie")
+
+    for title in df.index:
+        try:
+            index_user_likes = df.index.tolist().index(title)
+            sim_movies = indices[index_user_likes].tolist()
+            movie_distances = distances[index_user_likes].tolist()
+            id_movie = sim_movies.index(index_user_likes)
+
+            sim_movies.remove(index_user_likes)
+            movie_distances.pop(id_movie)
+            sim_movies_ids = list(
+                map(
+                    lambda row: {
+                        "name": movie_name_from_id(raw_df, df.index[row]),
+                        "id": df.index[row],
+                    },
+                    sim_movies,
+                )
+            )
+
+            await similar_collection.insert_one(
+                dict(
+                    _id=title,
+                    name=movie_name_from_id(raw_df, title),
+                    similar=sim_movies_ids,
+                )
+            )
+        except Exception as e:
+            print(e)
             
-
-            for title in df.index:
-                try:
-                    index_user_likes = df.index.tolist().index(title)
-                    sim_movies = indices[index_user_likes].tolist()
-                    movie_distances = distances[index_user_likes].tolist()
-                    id_movie = sim_movies.index(index_user_likes)
-
-                    sim_movies.remove(index_user_likes)
-                    movie_distances.pop(id_movie)
-                    sim_movies_ids = list(
-                        map(
-                            lambda row: {
-                                "name": movie_name_from_id(raw_df, df.index[row]),
-                                "id": df.index[row],
-                            },
-                            sim_movies,
-                        )
-                    )
-
-                    await similar_collection.insert_one(
-                        dict(
-                            _id=title,
-                            name=movie_name_from_id(raw_df, title),
-                            similar=sim_movies_ids,
-                        ),
-                        session=s,
-                    )
-                except Exception as e:
-                    print(e)
     t2 = time.time()
 
     print("Stop job: calculate similarities after {} seconds".format((t2 - t1)))

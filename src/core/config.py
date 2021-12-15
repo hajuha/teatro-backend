@@ -48,13 +48,12 @@ class MongoDBDatabase(BaseModel):
     @property
     def MONGODB_URI(self):
 
-        return 'mongodb://{}:{}/{}?replicaSet={}'.format(
+        return 'mongodb://{}:{}/{}'.format(
             # self.USER,
             # self.PASSWORD,
             self.HOST,
             self.PORT,
-            self.DATABASE_NAME,
-            self.REPLICASET
+            self.DATABASE_NAME
         )
 
 MESSAGES = {
